@@ -34,3 +34,8 @@ To make it easier for onboarding new developers, there is a documentation site m
 9. If this doesn't work, reach out to your senior
 
 Once you're logged into the swagger docs, try out a few other requests so you can see what each endpoint does. There is information in the docs about what status and data will be returned with each response. If you want to switch users, look in the `auth_token` table to grab a different token.
+
+## Deployed client site
+1. The front end of the website is deployed here: https://nss-bangazon-dev.herokuapp.com
+2. It's built to work with your local api, once you have your local server running you can use the dev website to interact with the api
+3. To login: open the `auth_user` table and copy one of the usernames that you'd like to login as. The password for each user is `password`
