@@ -61,7 +61,7 @@ class PaymentTypeView(ViewSet):
             )
         }
     )
-    def delete(self, request, pk):
+    def destroy(self, request, pk):
         """Delete a payment type"""
         try:
             payment_type = PaymentType.objects.get(pk=pk)
