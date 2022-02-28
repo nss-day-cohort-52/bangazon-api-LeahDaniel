@@ -162,6 +162,7 @@ class ProductView(ViewSet):
         products = Product.objects.all()
 
         number_sold = request.query_params.get('number_sold', None)
+        min_price = request.query_params.get('min_price', None)
         category = request.query_params.get('category', None)
         order = request.query_params.get('order_by', None)
         direction = request.query_params.get('direction', None)
@@ -171,6 +172,9 @@ class ProductView(ViewSet):
             products = products.annotate(
                 order_count=Count('orders')
             ).filter(order_count__gt=number_sold)
+            
+        if min_price:
+            products = products.filter(price__gte=min_price)
 
         if order is not None:
             order_filter = f'-{order}' if direction == 'desc' else order
