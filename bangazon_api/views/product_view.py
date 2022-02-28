@@ -1,17 +1,19 @@
+from bangazon_api.helpers import STATE_NAMES
+from bangazon_api.models import (Category, Like, Order, Product, Rating,
+                                Recommendation, Store)
+from bangazon_api.serializers import (AddProductRatingSerializer,
+                                    AddRemoveRecommendationSerializer,
+                                    CreateProductSerializer,
+                                    MessageSerializer, ProductSerializer)
 from django.contrib.auth.models import User
-from django.db.models import Count
-from rest_framework.viewsets import ViewSet
-from rest_framework.response import Response
+from django.db.models import Count, Q
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from bangazon_api.helpers import STATE_NAMES
-from bangazon_api.models import Product, Store, Category, Order, Rating, Recommendation
-from bangazon_api.serializers import (
-    ProductSerializer, CreateProductSerializer, MessageSerializer,
-    AddProductRatingSerializer, AddRemoveRecommendationSerializer)
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
 
 
 class ProductView(ViewSet):
@@ -208,7 +210,10 @@ class ProductView(ViewSet):
     def retrieve(self, request, pk):
         """Get a single product"""
         try:
-            product = Product.objects.get(pk=pk)
+            product = Product.objects.annotate(liked=Count(
+                'likes',
+                filter=Q(likes=request.auth.user)
+            )).get(pk=pk)
             serializer = ProductSerializer(product)
             return Response(serializer.data)
         except Product.DoesNotExist as ex:
@@ -353,3 +358,58 @@ class ProductView(ViewSet):
             )
 
         return Response({'message': 'Rating added'}, status=status.HTTP_201_CREATED)
+
+    @swagger_auto_schema(
+        method='POST',
+        responses={
+            201: openapi.Response(
+                description="Returns message that product was liked",
+                schema=MessageSerializer()
+            ),
+            404: openapi.Response(
+                description="Product not found",
+                schema=MessageSerializer()
+            ),
+        }
+    )
+    @action(methods=['post'], detail=True)
+    def like(self, request, pk):
+        """Add a like for the specified product and the current user"""
+        try:
+            product = Product.objects.get(pk=pk)
+            user = User.objects.get(pk=request.auth.user.id)
+
+            if user not in product.likes.all():
+                product.likes.add(user)
+                return Response({'message': 'like added'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'message': 'like already exists'})
+        except Product.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+
+    @swagger_auto_schema(
+        method='DELETE',
+        responses={
+            204: openapi.Response(
+                description="Returns message that like was deleted from product",
+                schema=MessageSerializer()
+            ),
+            404: openapi.Response(
+                description="Either the Like or Product was not found",
+                schema=MessageSerializer()
+            ),
+        }
+    )
+    @action(methods=['delete'], detail=True)
+    def unlike(self, request, pk):
+        """Remove a like from a product"""
+        try:
+            product = Product.objects.get(pk=pk)
+            like = Like.objects.get(user=request.auth.user, product=product)
+            like.delete()
+            return Response(None, status=status.HTTP_204_NO_CONTENT)
+        except Like.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+        except Product.DoesNotExist as ex:
+            #! Why does this code claim to be unreachable even though it is working?
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
