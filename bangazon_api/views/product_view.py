@@ -242,9 +242,7 @@ class ProductView(ViewSet):
     @swagger_auto_schema(
         method='DELETE',
         responses={
-            #! Shouldn't this be a 204? How do I get swagger to change when I save
-            #! this? It remains as a 201 on there.
-            201: openapi.Response(
+            204: openapi.Response(
                 description="Returns message that product was deleted from the order",
                 schema=MessageSerializer()
             ),
