@@ -14,7 +14,7 @@ from bangazon_api.models.product import Product
 class ProductTests(APITestCase):
     def setUp(self):
         """
-
+        Summary
         """
         call_command('seed_db', user_count=3)
         self.user1 = User.objects.filter(store__isnull=False).first()
@@ -75,3 +75,12 @@ class ProductTests(APITestCase):
         response = self.client.get('/api/products')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), Product.objects.count())
+        
+    def test_delete_product(self):
+        """_summary_
+        """
+        product = Product.objects.filter(store__seller=self.user1.id).first()
+        
+        response = self.client.delete(
+            f'/api/products/{product.id}')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
