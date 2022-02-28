@@ -1,13 +1,15 @@
-from rest_framework.viewsets import ViewSet
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.exceptions import ValidationError
-from django.db.models import Q, Count
-
-from drf_yasg.utils import swagger_auto_schema
+from bangazon_api.models import Store, Favorite
+from django.contrib.auth.models import User
+from bangazon_api.serializers import (AddStoreSerializer, MessageSerializer,
+                                      StoreSerializer)
+from django.db.models import Count, Q
 from drf_yasg import openapi
-from bangazon_api.models import Store
-from bangazon_api.serializers import StoreSerializer, MessageSerializer, AddStoreSerializer
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
 
 
 class StoreView(ViewSet):
@@ -103,4 +105,59 @@ class StoreView(ViewSet):
         except ValidationError as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_400_BAD_REQUEST)
         except Store.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+
+    @swagger_auto_schema(
+        method='POST',
+        responses={
+            201: openapi.Response(
+                description="Returns message that store was favorited",
+                schema=MessageSerializer()
+            ),
+            404: openapi.Response(
+                description="Store not found",
+                schema=MessageSerializer()
+            ),
+        }
+    )
+    @action(methods=['post'], detail=True)
+    def favorite(self, request, pk):
+        """Add a favorite for the specified store and the current user"""
+        try:
+            store = Store.objects.get(pk=pk)
+            user = User.objects.get(pk=request.auth.user.id)
+
+            if user not in store.favorites.all():
+                store.favorites.add(user)
+                return Response({'message': 'favorite added'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'message': 'favorite already exists'})
+        except Store.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+
+    @swagger_auto_schema(
+        method='DELETE',
+        responses={
+            204: openapi.Response(
+                description="Returns message that favorite was deleted from store",
+                schema=MessageSerializer()
+            ),
+            404: openapi.Response(
+                description="Either the Favorite or Store was not found",
+                schema=MessageSerializer()
+            ),
+        }
+    )
+    @action(methods=['delete'], detail=True)
+    def unfavorite(self, request, pk):
+        """Remove a favorite from a store"""
+        try:
+            store = Store.objects.get(pk=pk)
+            favorite = Favorite.objects.get(customer=request.auth.user, store=store)
+            favorite.delete()
+            return Response(None, status=status.HTTP_204_NO_CONTENT)
+        except Favorite.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+        except Store.DoesNotExist as ex:
+            #! Why does this code claim to be unreachable even though it is working?
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
