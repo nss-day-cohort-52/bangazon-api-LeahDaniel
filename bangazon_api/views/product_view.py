@@ -234,6 +234,8 @@ class ProductView(ViewSet):
     @swagger_auto_schema(
         method='DELETE',
         responses={
+            #! Shouldn't this be a 204? How do I get swagger to change when I save
+            #! this? It remains as a 201 on there.
             201: openapi.Response(
                 description="Returns message that product was deleted from the order",
                 schema=MessageSerializer()
@@ -251,10 +253,12 @@ class ProductView(ViewSet):
             product = Product.objects.get(pk=pk)
             order = Order.objects.get(
                 user=request.auth.user, completed_on=None)
+            order.products.remove(product)
             return Response(None, status=status.HTTP_204_NO_CONTENT)
         except Product.DoesNotExist as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
         except Order.DoesNotExist as ex:
+            #! Why does this code claim to be unreachable even though it is working?
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
     @swagger_auto_schema(
