@@ -1,10 +1,10 @@
 from bangazon_api.helpers import STATE_NAMES
 from bangazon_api.models import (Category, Like, Order, Product, Rating,
-                                Recommendation, Store)
+                                 Recommendation, Store)
 from bangazon_api.serializers import (AddProductRatingSerializer,
-                                    AddRemoveRecommendationSerializer,
-                                    CreateProductSerializer,
-                                    MessageSerializer, ProductSerializer)
+                                      AddRemoveRecommendationSerializer,
+                                      CreateProductSerializer,
+                                      MessageSerializer, ProductSerializer)
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from drf_yasg import openapi
@@ -98,7 +98,8 @@ class ProductView(ViewSet):
     def destroy(self, request, pk):
         """Delete a product"""
         try:
-            product = Product.objects.get(pk=pk, store__seller=request.auth.user)
+            product = Product.objects.get(
+                pk=pk, store__seller=request.auth.user)
             product.delete()
             return Response(None, status=status.HTTP_204_NO_CONTENT)
         except Product.DoesNotExist as ex:
@@ -175,7 +176,7 @@ class ProductView(ViewSet):
             products = products.annotate(
                 order_count=Count('orders')
             ).filter(order_count__gt=number_sold)
-            
+
         if min_price:
             products = products.filter(price__gte=min_price)
 
@@ -188,7 +189,7 @@ class ProductView(ViewSet):
 
         if location is not None:
             products = products.filter(location__icontains=location)
-            
+
         if name is not None:
             products = products.filter(name__icontains=name)
 
@@ -413,3 +414,20 @@ class ProductView(ViewSet):
         except Product.DoesNotExist as ex:
             #! Why does this code claim to be unreachable even though it is working?
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(
+                description="The list of products",
+                schema=ProductSerializer(many=True)
+            )
+        }
+    )
+    @action(methods=['get'], detail=False)
+    def liked(self, request):
+        """Get all liked products for current user"""
+        user = User.objects.get(pk=request.auth.user.id)
+
+        products = Product.objects.filter(like__user=user)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
