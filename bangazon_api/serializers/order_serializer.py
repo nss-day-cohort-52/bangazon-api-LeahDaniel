@@ -7,7 +7,7 @@ class OrderSerializer(serializers.ModelSerializer):
     payment_type = PaymentTypeSerializer()
     class Meta:
         model = Order
-        fields = ('id', 'products', 'created_on', 'completed_on', 'total', 'payment_type')
+        fields = ('id', 'products', 'created_on', 'completed_on', 'total', 'payment_type', 'user')
         depth = 1
 
 class UpdateOrderSerializer(serializers.ModelSerializer):

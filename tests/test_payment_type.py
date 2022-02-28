@@ -11,7 +11,7 @@ class PaymentTests(APITestCase):
         """
         Seed the database
         """
-        call_command('seed_db', user_count=1)
+        call_command('seed_db', user_count=3)
         self.user1 = User.objects.filter(store=None).first()
         self.token = Token.objects.get(user=self.user1)
 
@@ -36,4 +36,4 @@ class PaymentTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(response.data['id'])
         self.assertEqual(response.data["merchant_name"], data['merchant'])
-        self.assertEqual(response.data["acct_number"], data['acctNumber'])
+        self.assertEqual(response.data["obscured_num"][-4:], data['acctNumber'][-4:])

@@ -270,7 +270,6 @@ class ProductView(ViewSet):
         except Product.DoesNotExist as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
         except Order.DoesNotExist as ex:
-            #! Why does this code claim to be unreachable even though it is working?
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
     @swagger_auto_schema(
@@ -412,7 +411,6 @@ class ProductView(ViewSet):
         except Like.DoesNotExist as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
         except Product.DoesNotExist as ex:
-            #! Why does this code claim to be unreachable even though it is working?
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
     @swagger_auto_schema(
