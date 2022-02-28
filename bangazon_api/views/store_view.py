@@ -159,5 +159,4 @@ class StoreView(ViewSet):
         except Favorite.DoesNotExist as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
         except Store.DoesNotExist as ex:
-            #! Why does this code claim to be unreachable even though it is working?
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
