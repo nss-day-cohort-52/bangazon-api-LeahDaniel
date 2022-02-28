@@ -49,14 +49,12 @@ class OrderTests(APITestCase):
         response = self.client.get('/api/orders')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data), 1)
-        
 
     def test_delete_order(self):
         """_summary_
         """
         response = self.client.delete(f'/api/orders/{self.order1.id}')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
 
     def test_complete_order(self):
         """The orders list should return a list of orders for the logged in user"""
@@ -76,4 +74,5 @@ class OrderTests(APITestCase):
         response = OrderSerializer(order)
 
         self.assertIsNotNone(response.data["completed_on"])
-        self.assertEqual(response.data["payment_type"]["id"], self.payment_type.id)
+        self.assertEqual(response.data["payment_type"]
+                         ["id"], self.payment_type.id)
