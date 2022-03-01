@@ -46,7 +46,6 @@ class ProductTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(response.data['id'])
 
-
     def test_update_product(self):
         """
         Ensure we can update a product.
@@ -61,7 +60,8 @@ class ProductTests(APITestCase):
             "imagePath": "",
             "categoryId": product.category.id
         }
-        response = self.client.put(f'/api/products/{product.id}', data, format='json')
+        response = self.client.put(
+            f'/api/products/{product.id}', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         product_updated = Product.objects.get(pk=product.id)
@@ -75,12 +75,35 @@ class ProductTests(APITestCase):
         response = self.client.get('/api/products')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), Product.objects.count())
-        
+
     def test_delete_product(self):
         """_summary_
         """
         product = Product.objects.filter(store__seller=self.user1.id).first()
-        
+
         response = self.client.delete(
             f'/api/products/{product.id}')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_rate_product(self):
+        """_summary_
+        """
+        product = Product.objects.first()
+        rating = {
+            "score": 3,
+            "review": "Awesome product"
+        }
+
+        response = self.client.post(
+            f'/api/products/{product.id}/rate_product', rating, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        response = self.client.get(f'/api/products/{product.id}')
+        
+        
+        self.assertEqual(response.data["merchant_name"], data['merchant'])
+        self.assertEqual(response.data["obscured_num"]
+                         [-4:], data['acctNumber'][-4:])
+        
+        

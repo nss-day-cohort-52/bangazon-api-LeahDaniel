@@ -29,4 +29,4 @@ class AddRemoveRecommendationSerializer(serializers.Serializer):
 
 class AddProductRatingSerializer(serializers.Serializer):
     score = serializers.IntegerField()
-    rating = serializers.CharField()
+    review = serializers.CharField()
