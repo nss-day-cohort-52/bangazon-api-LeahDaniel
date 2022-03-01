@@ -26,82 +26,97 @@ class ProductTests(APITestCase):
         self.faker = Faker()
         self.faker.add_provider(faker_commerce.Provider)
 
-    def test_create_product(self):
-        """
-        Ensure we can create a new product.
-        """
-        category = Category.objects.first()
+    # def test_create_product(self):
+    #     """
+    #     Ensure we can create a new product.
+    #     """
+    #     category = Category.objects.first()
 
-        data = {
-            "name": self.faker.ecommerce_name(),
-            "price": random.randint(50, 1000),
-            "description": self.faker.paragraph(),
-            "quantity": random.randint(2, 20),
-            "location": random.choice(STATE_NAMES),
-            "imagePath": "",
-            "categoryId": category.id
-        }
-        response = self.client.post('/api/products', data, format='json')
+    #     data = {
+    #         "name": self.faker.ecommerce_name(),
+    #         "price": random.randint(50, 1000),
+    #         "description": self.faker.paragraph(),
+    #         "quantity": random.randint(2, 20),
+    #         "location": random.choice(STATE_NAMES),
+    #         "imagePath": "",
+    #         "categoryId": category.id
+    #     }
+    #     response = self.client.post('/api/products', data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIsNotNone(response.data['id'])
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    #     self.assertIsNotNone(response.data['id'])
 
-    def test_update_product(self):
-        """
-        Ensure we can update a product.
-        """
-        product = Product.objects.first()
-        data = {
-            "name": product.name,
-            "price": product.price,
-            "description": self.faker.paragraph(),
-            "quantity": product.quantity,
-            "location": product.location,
-            "imagePath": "",
-            "categoryId": product.category.id
-        }
-        response = self.client.put(
-            f'/api/products/{product.id}', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    # def test_update_product(self):
+    #     """
+    #     Ensure we can update a product.
+    #     """
+    #     product = Product.objects.first()
+    #     data = {
+    #         "name": product.name,
+    #         "price": product.price,
+    #         "description": self.faker.paragraph(),
+    #         "quantity": product.quantity,
+    #         "location": product.location,
+    #         "imagePath": "",
+    #         "categoryId": product.category.id
+    #     }
+    #     response = self.client.put(
+    #         f'/api/products/{product.id}', data, format='json')
+    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        product_updated = Product.objects.get(pk=product.id)
-        self.assertEqual(product_updated.description, data['description'])
+    #     product_updated = Product.objects.get(pk=product.id)
+    #     self.assertEqual(product_updated.description, data['description'])
 
-    def test_get_all_products(self):
-        """
-        Ensure we can get a collection of products.
-        """
+    # def test_get_all_products(self):
+    #     """
+    #     Ensure we can get a collection of products.
+    #     """
 
-        response = self.client.get('/api/products')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), Product.objects.count())
+    #     response = self.client.get('/api/products')
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     self.assertEqual(len(response.data), Product.objects.count())
 
-    def test_delete_product(self):
-        """_summary_
-        """
-        product = Product.objects.filter(store__seller=self.user1.id).first()
+    # def test_delete_product(self):
+    #     """_summary_
+    #     """
+    #     product = Product.objects.filter(store__seller=self.user1.id).first()
 
-        response = self.client.delete(
-            f'/api/products/{product.id}')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    #     response = self.client.delete(
+    #         f'/api/products/{product.id}')
+        # self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_rate_product(self):
         """_summary_
         """
         product = Product.objects.first()
-        rating = {
+        new_rating = {
             "score": 3,
             "review": "Awesome product"
         }
 
         response = self.client.post(
-            f'/api/products/{product.id}/rate-product', rating, format='json')
+            f'/api/products/{product.id}/rate-product', new_rating, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         response = self.client.get(f'/api/products/{product.id}')
 
-        new_average = (product.average_rating + rating["score"]) / 2
+        total_rating = 0
+
+        for rating in product.ratings.all():
+            total_rating += rating.score
+
+        new_average = total_rating / product.ratings.count()
 
         self.assertGreater(response.data["average_rating"], 0)
         self.assertEqual(response.data["average_rating"], new_average)
+
+    def test_add_product_to_order(self):
+        """_summary_
+        """
+        product = Product.objects.first()
+
+        response = self.client.post(
+            f'/api/products/{product.id}/add_to_order', format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
