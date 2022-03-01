@@ -6,12 +6,12 @@
     <title>Bangazon Reports</title>
   </head>
   <body>
-    <h1>Expensive Products</h1>
+    <h1> Expensive Products </h1>
 
     {% for product in expensive_product_list %}
         <h2>{{ product.name }}</h2>
-        <p>Store: {{ product.store_name }}</p>
-        <p>Price: {{ product.price }}</p>
+        <p>Price:{{ product.price}}</p>
+        <p>Store:{{ product.store_name}}</p>
     {% endfor %}
   </body>
 </html>
