@@ -1,0 +1,5 @@
+from bangazon_reports.views.products.expensiveProducts import ExpensiveProductList
+
+
+from .products.expensiveProducts import ExpensiveProductList
+from .products.inexpensiveProducts import InexpensiveProductList
