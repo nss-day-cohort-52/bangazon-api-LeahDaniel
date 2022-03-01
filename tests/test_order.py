@@ -1,11 +1,10 @@
-from rest_framework import status
-from rest_framework.test import APITestCase
-from rest_framework.authtoken.models import Token
-from django.core.management import call_command
-from django.contrib.auth.models import User
-
-from bangazon_api.models import Order, Product, PaymentType
+from bangazon_api.models import Order, PaymentType, Product
 from bangazon_api.serializers.order_serializer import OrderSerializer
+from django.contrib.auth.models import User
+from django.core.management import call_command
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APITestCase
 
 
 class OrderTests(APITestCase):
