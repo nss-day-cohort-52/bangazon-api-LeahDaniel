@@ -1,14 +1,14 @@
 import random
+
 import faker_commerce
+from bangazon_api.helpers import STATE_NAMES
+from bangazon_api.models import Category, Product
+from django.contrib.auth.models import User
+from django.core.management import call_command
 from faker import Faker
 from rest_framework import status
-from rest_framework.test import APITestCase
 from rest_framework.authtoken.models import Token
-from django.core.management import call_command
-from django.contrib.auth.models import User
-from bangazon_api.helpers import STATE_NAMES
-from bangazon_api.models import Category
-from bangazon_api.models.product import Product
+from rest_framework.test import APITestCase
 
 
 class ProductTests(APITestCase):
@@ -46,7 +46,6 @@ class ProductTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(response.data['id'])
 
-
     def test_update_product(self):
         """
         Ensure we can update a product.
@@ -61,7 +60,8 @@ class ProductTests(APITestCase):
             "imagePath": "",
             "categoryId": product.category.id
         }
-        response = self.client.put(f'/api/products/{product.id}', data, format='json')
+        response = self.client.put(
+            f'/api/products/{product.id}', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         product_updated = Product.objects.get(pk=product.id)
@@ -75,12 +75,33 @@ class ProductTests(APITestCase):
         response = self.client.get('/api/products')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), Product.objects.count())
-        
+
     def test_delete_product(self):
         """_summary_
         """
         product = Product.objects.filter(store__seller=self.user1.id).first()
-        
+
         response = self.client.delete(
             f'/api/products/{product.id}')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_rate_product(self):
+        """_summary_
+        """
+        product = Product.objects.first()
+        rating = {
+            "score": 3,
+            "review": "Awesome product"
+        }
+
+        response = self.client.post(
+            f'/api/products/{product.id}/rate-product', rating, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(f'/api/products/{product.id}')
+
+        new_average = (product.average_rating + rating["score"]) / 2
+
+        self.assertGreater(response.data["average_rating"], 0)
+        self.assertEqual(response.data["average_rating"], new_average)
