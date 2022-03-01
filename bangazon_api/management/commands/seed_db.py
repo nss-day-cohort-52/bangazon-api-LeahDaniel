@@ -87,6 +87,9 @@ class Command(BaseCommand):
             )
 
     def create_closed_orders(self, user):
+        """_summary_
+
+        """
         order = Order.objects.create(
             user=user,
             payment_type=user.payment_types.first(),
@@ -98,6 +101,9 @@ class Command(BaseCommand):
         order.products.set(products)
 
     def create_open_orders(self, user):
+        """_summary_
+
+        """
         order = Order.objects.create(
             user=user
         )
